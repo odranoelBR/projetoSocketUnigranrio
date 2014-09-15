@@ -20,7 +20,7 @@ public class ClienteCalculadora {
 		PrintWriter saida;
 		BufferedReader entrada;
 		
-		System.out.println("Digite uma operação (ex.: 1 + 1):");
+		System.out.println("Digite uma operacao (ex.: 1 + 1 * a - f ...):");
 		String leitura = leitor.nextLine();
 		
 		leitor.close();
