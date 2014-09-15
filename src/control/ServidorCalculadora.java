@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.EmptyStackException;
+import java.util.Scanner;
 
 public class ServidorCalculadora {
 	private ServerSocket serverSocket;
@@ -18,8 +20,7 @@ public class ServidorCalculadora {
 		for (;;) {
 			Socket requisicao = this.serverSocket.accept();
 
-			Calculadora calc = new Calculadora();
-			
+
 			InputStream canalEntrada;
 			OutputStream canalSaida;
 			BufferedReader entrada;
@@ -28,7 +29,7 @@ public class ServidorCalculadora {
 			try {
 				canalEntrada = requisicao.getInputStream();
 				canalSaida = requisicao.getOutputStream();
-				
+
 				entrada = new BufferedReader(new InputStreamReader(canalEntrada));
 				saida = new PrintWriter(canalSaida, true);
 
@@ -36,36 +37,29 @@ public class ServidorCalculadora {
 
 				while (true) {
 					String linhaPedido = entrada.readLine();
-					
+
 					if (linhaPedido == null || linhaPedido.length() == 0)
 						break;
-					
-					String[] str = linhaPedido.split(" ");
-					
-					if (str.length > 3)
-						break;
-					
-					double valor1 = Double.parseDouble(str[0]);
-					double valor2 = Double.parseDouble(str[2]);
-					
-					String operacao = str[1];
-					
-					double retorno = 0;
-					
-					if(operacao.equals("+")){
-						retorno = calc.somar(valor1, valor2);
-					} else if(operacao.equals("-")){
-						retorno = calc.subtrair(valor1, valor2);
-					} else if(operacao.equals("*")){
-						retorno = calc.multiplicar(valor1, valor2);
-					} else if(operacao.equals("/")){
-						retorno = calc.dividir(valor1, valor2);
+
+					String reg = "((?<=[<=|>=|==|\\+|\\*|\\-|<|>|/|=])|(?=[<=|>=|==|\\+|\\*|\\-|<|>|/|=]))";
+
+					ParseadorCalculadora parser = new ParseadorCalculadora();
+
+					System.out.println("Digite sua expressão");
+					String[] input = linhaPedido .split(reg);
+					String[] output = parser.expToRPN(input);
+					System.out.print("Arvore: ");
+					for (String token : output) {
+						System.out.print("[ ");System.out.print(token + " "); System.out.print("]");
 					}
-					
+					System.out.println(" ");
+					// Feed the RPN string to RPNtoDouble to give result
+					Double retorno = parser.RPNtoDouble( output );
 					saida.println("Resultado: " + retorno);
+
 				}
-				
-//				requisicao.close();
+
+				//				requisicao.close();
 			} catch (IOException ex) {
 				ex.printStackTrace();
 			}
